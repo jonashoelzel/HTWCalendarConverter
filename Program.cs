@@ -34,13 +34,16 @@ namespace HTWCalendarConverter
                 var newTitle = "SUMMARY;LANGUAGE=de:" + description.Replace("DESCRIPTION:", "");
                 if (title.Contains('|'))
                     newTitle += " |" + title.Split('|').LastOrDefault();
-
-                fileText = fileText.Replace(title, newTitle);
+                
+                var newEvent = ev.Replace(title, newTitle);
 
                 // Edit description
                 var newDescription = "DESCRIPTION:" + title.Split('|').FirstOrDefault()?.Replace("SUMMARY;LANGUAGE=de:", "");
-                
-                fileText = fileText.Replace(description, newDescription);
+
+                newEvent = newEvent.Replace(description, newDescription);
+
+                // Insert into File
+                fileText = fileText.Replace(ev, newEvent);
             }
 
             File.WriteAllText(path.Replace(".ics", "_edit.ics"), fileText);
