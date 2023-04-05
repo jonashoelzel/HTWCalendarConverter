@@ -8,48 +8,53 @@ namespace HTWCalendarConverter
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Enter ics path:");
-            var path = Console.ReadLine().Trim('"');
-
-            if (!File.Exists(path))
+            while (true)
             {
-                Console.WriteLine("File not found!");
-                Console.ReadLine();
-                return;
-            }
+                Console.WriteLine("Enter ics path or 'exit' to close:");
+                var path = Console.ReadLine().Trim('"');
 
-            var fileText = File.ReadAllText(path);
+                if (path.ToLower() == "exit")
+                    return;
 
-            var events = fileText.Split("END:VEVENT");
-            foreach (var ev in events)
-            {
-                var lines = ev.Split('\n');
-                var title = lines.FirstOrDefault(l => l.StartsWith("SUMMARY;LANGUAGE=de:"))?.Trim();
-                var description = lines.FirstOrDefault(l => l.StartsWith("DESCRIPTION:"))?.Trim();
-                
-                if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(description))
+                if (!File.Exists(path))
+                {
+                    Console.WriteLine("File not found!");
+                    Console.ReadLine();
                     continue;
+                }
 
-                // Edit Title
-                var newTitle = "SUMMARY;LANGUAGE=de:" + description.Replace("DESCRIPTION:", "");
-                if (title.Contains('|'))
-                    newTitle += " |" + title.Split('|').LastOrDefault();
-                
-                var newEvent = ev.Replace(title, newTitle);
+                var fileText = File.ReadAllText(path);
 
-                // Edit description
-                var newDescription = "DESCRIPTION:" + title.Split('|').FirstOrDefault()?.Replace("SUMMARY;LANGUAGE=de:", "");
+                var events = fileText.Split("END:VEVENT");
+                foreach (var ev in events)
+                {
+                    var lines = ev.Split('\n');
+                    var title = lines.FirstOrDefault(l => l.StartsWith("SUMMARY;LANGUAGE=de:"))?.Trim();
+                    var description = lines.FirstOrDefault(l => l.StartsWith("DESCRIPTION:"))?.Trim();
 
-                newEvent = newEvent.Replace(description, newDescription);
+                    if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(description))
+                        continue;
 
-                // Insert into File
-                fileText = fileText.Replace(ev, newEvent);
+                    // Edit Title
+                    var newTitle = "SUMMARY;LANGUAGE=de:" + description.Replace("DESCRIPTION:", "");
+                    if (title.Contains('|'))
+                        newTitle += " |" + title.Split('|').LastOrDefault();
+
+                    var newEvent = ev.Replace(title, newTitle);
+
+                    // Edit description
+                    var newDescription = "DESCRIPTION:" + title.Split('|').FirstOrDefault()?.Replace("SUMMARY;LANGUAGE=de:", "");
+
+                    newEvent = newEvent.Replace(description, newDescription);
+
+                    // Insert into File
+                    fileText = fileText.Replace(ev, newEvent);
+                }
+
+                File.WriteAllText(path.Replace(".ics", "_edit.ics"), fileText);
+
+                Console.WriteLine("Success!");
             }
-
-            File.WriteAllText(path.Replace(".ics", "_edit.ics"), fileText);
-
-            Console.WriteLine("Success!");
-            Console.ReadLine();
         }
     }
 }
